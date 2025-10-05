@@ -453,7 +453,7 @@
         </div>
     </div>
 
-    <!-- 航班詳情彈出視窗 -->
+    <!-- 航班詳情彈出視窗 - 初始狀態為隱藏 -->
     <div id="flightDetailModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -570,6 +570,8 @@
         function showLoginInterface() {
             document.getElementById('loginContainer').classList.remove('hidden');
             document.getElementById('mainContainer').classList.add('hidden');
+            // 確保彈出視窗是隱藏的
+            document.getElementById('flightDetailModal').classList.add('hidden');
         }
         
         // 顯示主介面
@@ -577,6 +579,8 @@
             document.getElementById('loginContainer').classList.add('hidden');
             document.getElementById('mainContainer').classList.remove('hidden');
             document.getElementById('userDisplayName').textContent = currentUser.username;
+            // 確保彈出視窗是隱藏的
+            document.getElementById('flightDetailModal').classList.add('hidden');
         }
         
         // 登入功能
@@ -869,7 +873,7 @@
             document.getElementById('updateStatus').classList.remove('hidden');
         }
         
-        // 顯示航班詳情
+        // 顯示航班詳情 - 只有點擊航班時才呼叫
         function showFlightDetail(flightNumber) {
             const flight = trackedFlights.find(f => f.number === flightNumber);
             if (!flight) return;
@@ -877,6 +881,11 @@
             currentSelectedFlight = flight;
             document.getElementById('modalFlightNumber').textContent = `航班 ${flightNumber} 詳情`;
             document.getElementById('flightDetailModal').classList.remove('hidden');
+            
+            // 重置載入狀態
+            document.getElementById('modalBasicInfo').innerHTML = '載入中<span class="loading-dots"></span>';
+            document.getElementById('modalAIAnalysis').innerHTML = '分析中<span class="loading-dots"></span>';
+            document.getElementById('modalRelatedInfo').innerHTML = '搜尋中<span class="loading-dots"></span>';
             
             // 載入基本資訊
             loadBasicInfo(flight);
@@ -888,18 +897,17 @@
         
         // 載入基本資訊
         function loadBasicInfo(flight) {
-            const basicInfo = `
-                <div><strong>航空公司：</strong>${flight.airline}</div>
-                <div><strong>航班狀態：</strong>${flight.status === 'delayed' ? '🟡 延誤' : flight.status === 'arrived' ? '✅ 已到達' : '🟢 預定起飛'}</div>
-                <div><strong>出發機場：</strong>${flight.departure.airport} ${flight.departure.terminal}</div>
-                <div><strong>抵達機場：</strong>${flight.arrival.airport} ${flight.arrival.terminal}</div>
-                <div><strong>實際時間：</strong>${flight.departure.actual} → ${flight.arrival.actual}</div>
-                <div><strong>登機門：</strong>${flight.gate}</div>
-                <div><strong>行李轉盤：</strong>${flight.baggage}</div>
-                ${flight.delayReason ? `<div><strong>延誤原因：</strong>${flight.delayReason}</div>` : ''}
-            `;
-            
             setTimeout(() => {
+                const basicInfo = `
+                    <div><strong>航空公司：</strong>${flight.airline}</div>
+                    <div><strong>航班狀態：</strong>${flight.status === 'delayed' ? '🟡 延誤' : flight.status === 'arrived' ? '✅ 已到達' : '🟢 預定起飛'}</div>
+                    <div><strong>出發機場：</strong>${flight.departure.airport} ${flight.departure.terminal}</div>
+                    <div><strong>抵達機場：</strong>${flight.arrival.airport} ${flight.arrival.terminal}</div>
+                    <div><strong>實際時間：</strong>${flight.departure.actual} → ${flight.arrival.actual}</div>
+                    <div><strong>登機門：</strong>${flight.gate}</div>
+                    <div><strong>行李轉盤：</strong>${flight.baggage}</div>
+                    ${flight.delayReason ? `<div><strong>延誤原因：</strong>${flight.delayReason}</div>` : ''}
+                `;
                 document.getElementById('modalBasicInfo').innerHTML = basicInfo;
             }, 500);
         }
