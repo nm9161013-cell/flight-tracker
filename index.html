@@ -18,23 +18,336 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
             color: white;
+            padding: 0;
         }
         
-        .container {
-            max-width: 100%;
+        /* 緊湊的容器設計 */
+        .compact-container {
             background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 16px;
             backdrop-filter: blur(10px);
-            margin-bottom: 20px;
+            margin: 12px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 12px 0;
         }
         
         h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        
+        .welcome-text {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        /* 搜尋區塊 - 緊湊設計 */
+        .search-section {
+            margin-bottom: 12px;
+        }
+        
+        .flight-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .flight-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .flight-input-row input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        .remove-flight {
+            background: #ef4444;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: none;
+            color: white;
+        }
+        
+        .date-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+            padding-left: 4px;
+        }
+        
+        /* 按鈕群組 */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .button-group button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            color: white;
+        }
+        
+        .api-btn {
+            background: #3b82f6;
+        }
+        
+        .ai-btn {
+            background: #10b981;
+        }
+        
+        .add-flight-btn {
+            background: #8b5cf6;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            color: white;
+            margin-bottom: 8px;
+        }
+        
+        .clear-btn {
+            background: #ef4444;
+        }
+        
+        /* 航班顯示區塊 - 緊湊設計 */
+        .results-section {
+            margin-top: 0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .flight-list {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        
+        .flight-item {
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #3b82f6;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .flight-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .flight-number {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .flight-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-arrived { background: #10b981; }
+        .status-scheduled { background: #3b82f6; }
+        .status-delayed { background: #f59e0b; }
+        .status-cancelled { background: #ef4444; }
+        
+        .flight-route {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .departure, .arrival {
             text-align: center;
+        }
+        
+        .time {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .airport {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .flight-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .no-flights {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        .update-status {
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 8px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* 航班詳情彈出視窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .info-section {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-title {
+            font-size: 16px;
             margin-bottom: 10px;
-            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .news-btn {
+            background: #f59e0b;
+        }
+        
+        .ai-info-btn {
+            background: #8b5cf6;
+        }
+        
+        .loading-dots {
+            display: inline-block;
+        }
+        
+        .loading-dots:after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        /* 登入相關 */
+        .login-container {
+            padding: 20px;
         }
         
         .login-section {
@@ -44,293 +357,130 @@
             margin: 20px 0;
         }
         
-        .search-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 25px 0;
-        }
-        
-        .flight-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .flight-input-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .flight-input-row input {
-            flex: 1;
-        }
-        
-        .remove-flight {
-            background: #ef4444;
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        
-        input, select {
-            padding: 16px;
+        .login-section input {
+            padding: 14px;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: 10px;
+            font-size: 16px;
             background: rgba(255,255,255,0.9);
         }
         
-        button {
-            padding: 16px;
+        .login-section button {
+            padding: 14px;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: 10px;
+            font-size: 16px;
             background: #3b82f6;
             color: white;
-            cursor: pointer;
-            transition: background 0.3s;
         }
         
-        button:hover {
-            background: #2563eb;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .button-group button {
-            flex: 1;
-        }
-        
-        .clear-btn {
-            background: #ef4444;
-        }
-        
-        .clear-btn:hover {
-            background: #dc2626;
-        }
-        
-        .ai-btn {
-            background: #10b981;
-        }
-        
-        .ai-btn:hover {
-            background: #059669;
-        }
-        
-        .add-flight-btn {
-            background: #8b5cf6;
-            font-size: 16px;
-        }
-        
-        .result-section {
-            background: rgba(255,255,255,0.2);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 15px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .tips {
-            background: rgba(255,255,255,0.15);
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-        
-        .flight-tracker-list {
-            margin-top: 15px;
-        }
-        
-        .tracker-item {
-            background: rgba(255,255,255,0.15);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3b82f6;
-        }
-        
-        .flight-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .flight-number {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .flight-date {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        
-        .flight-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .status-arrived {
-            background: #10b981;
-        }
-        
-        .status-scheduled {
-            background: #3b82f6;
-        }
-        
-        .status-delayed {
-            background: #f59e0b;
-        }
-        
-        .status-cancelled {
-            background: #ef4444;
-        }
-        
-        .flight-details {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .departure, .arrival {
-            text-align: center;
-        }
-        
-        .time {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .airport {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .flight-route {
-            text-align: center;
-            opacity: 0.7;
-        }
-        
-        .flight-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            font-size: 14px;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .status-updating {
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
+        .register-btn {
+            background: #8b5cf6 !important;
         }
         
         .logout-btn {
             background: #6b7280;
-            font-size: 14px;
-            padding: 10px;
-        }
-        
-        .no-flights {
-            text-align: center;
-            padding: 40px;
-            opacity: 0.7;
+            font-size: 12px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
         }
     </style>
 </head>
 <body>
     <!-- 登入區塊 -->
-    <div id="loginContainer" class="container">
-        <h1>✈️ 智慧航班追蹤</h1>
-        <p style="text-align: center; opacity: 0.8;">請先登入您的帳號</p>
+    <div id="loginContainer" class="login-container">
+        <div class="header">
+            <h1>✈️ 智慧航班追蹤</h1>
+            <p class="welcome-text">請先登入您的帳號</p>
+        </div>
         
         <div class="login-section">
             <input type="text" id="username" placeholder="帳號" />
             <input type="password" id="password" placeholder="密碼" />
             <button onclick="login()">登入</button>
-            <button onclick="register()" style="background: #8b5cf6;">註冊新帳號</button>
+            <button onclick="register()" class="register-btn">註冊新帳號</button>
         </div>
     </div>
 
     <!-- 主功能區塊 -->
-    <div id="mainContainer" class="container hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>✈️ 智慧航班追蹤</h1>
-            <button class="logout-btn" onclick="logout()">登出</button>
+    <div id="mainContainer" class="hidden">
+        <!-- 標題區塊 -->
+        <div class="compact-container">
+            <div class="header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1>✈️ 智慧航班追蹤</h1>
+                    <button class="logout-btn" onclick="logout()">登出</button>
+                </div>
+                <p class="welcome-text">歡迎回來，<span id="userDisplayName">使用者</span>！</p>
+            </div>
         </div>
-        <p style="text-align: center; opacity: 0.8;">歡迎回來，<span id="userDisplayName">使用者</span>！</p>
-        
-        <div class="search-section">
+
+        <!-- 搜尋區塊 -->
+        <div class="compact-container search-section">
             <div class="flight-inputs" id="flightInputs">
                 <!-- 航班輸入欄位會動態生成在這裡 -->
             </div>
             
+            <div class="date-label">抵達台灣日期</div>
+            <input type="date" id="arrivalDate" style="width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; background: rgba(255,255,255,0.9); margin-bottom: 8px;">
+            
             <button class="add-flight-btn" onclick="addFlightInput()">＋ 新增航班</button>
             
             <div class="button-group">
-                <button onclick="trackFlights()">追蹤航班</button>
+                <button class="api-btn" onclick="searchWithAPI()">航空API查詢</button>
+                <button class="ai-btn" onclick="searchWithAI()">AI助手查詢</button>
+            </div>
+            
+            <div class="button-group">
                 <button class="clear-btn" onclick="clearAllFlights()">清除全部</button>
             </div>
         </div>
-        
-        <div id="loading" class="hidden">🔄 載入航班動態中...</div>
-        
-        <!-- 航班追蹤結果 -->
-        <div id="flightTrackerResult" class="result-section">
-            <h3>📊 航班動態追蹤</h3>
-            <div id="flightTrackerList" class="flight-tracker-list">
+
+        <!-- 航班顯示區塊 -->
+        <div class="compact-container results-section">
+            <div class="section-title">
+                <span>📊 航班動態</span>
+                <span id="updateStatus" class="update-status hidden">🔄 自動更新中</span>
+            </div>
+            
+            <div id="flightList" class="flight-list">
                 <div class="no-flights">
                     🛫 請輸入要追蹤的航班號碼
                 </div>
             </div>
-            <div id="updateStatus" class="status-updating hidden">
-                🔄 每30秒自動更新航班狀態...
-            </div>
-        </div>
-        
-        <!-- 上次查詢記錄 -->
-        <div id="lastSearchSection" class="result-section">
-            <h3>📝 上次追蹤的航班</h3>
-            <div id="lastSearchData"></div>
         </div>
     </div>
-    
-    <div class="container tips">
-        <h4>💡 使用提示：</h4>
-        <p>• 可同時追蹤多個航班（最多5個）</p>
-        <p>• 每30秒自動更新航班狀態</p>
-        <p>• 顯示即時到達/出發時間</p>
-        <p>• 自動保存追蹤記錄</p>
-        <p>• 可添加到主畫面像 App 一樣使用</p>
+
+    <!-- 航班詳情彈出視窗 -->
+    <div id="flightDetailModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalFlightNumber">航班資訊</div>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-title">📋 基本資訊</div>
+                <div id="modalBasicInfo">載入中<span class="loading-dots"></span></div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-title">🤖 AI 航班分析</div>
+                <div id="modalAIAnalysis">分析中<span class="loading-dots"></span></div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-title">📰 相關資訊</div>
+                <div id="modalRelatedInfo">搜尋中<span class="loading-dots"></span></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="news-btn" onclick="searchRelatedNews()">📰 相關新聞</button>
+                <button class="ai-info-btn" onclick="getAIDetailedInfo()">🤖 AI詳細分析</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -338,11 +488,13 @@
         let currentUser = null;
         let autoUpdateInterval = null;
         let trackedFlights = [];
+        let currentSelectedFlight = null;
         
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             checkLoginStatus();
             initializeFlightInputs();
+            setupArrivalDate();
         });
         
         // PWA Service Worker 註冊
@@ -356,6 +508,13 @@
                         console.log('PWA 設定失敗: ', error);
                     });
             });
+        }
+        
+        // 設定抵達日期
+        function setupArrivalDate() {
+            const arrivalDate = document.getElementById('arrivalDate');
+            const today = new Date();
+            arrivalDate.value = today.toISOString().split('T')[0];
         }
         
         // 初始化航班輸入欄位
@@ -382,15 +541,9 @@
             const flightRow = document.createElement('div');
             flightRow.className = 'flight-input-row';
             flightRow.innerHTML = `
-                <input type="text" placeholder="航班號碼 (例如: BR396)" class="flight-number-input">
-                <input type="date" class="flight-date-input">
+                <input type="text" placeholder="航班號碼 (例: BR396)" class="flight-number-input">
                 ${inputCount > 0 ? '<button class="remove-flight" onclick="removeFlightInput(this)">×</button>' : ''}
             `;
-            
-            // 設定日期預設值
-            const dateInput = flightRow.querySelector('.flight-date-input');
-            const today = new Date();
-            dateInput.value = today.toISOString().split('T')[0];
             
             flightInputs.appendChild(flightRow);
         }
@@ -404,14 +557,10 @@
         // 檢查登入狀態
         function checkLoginStatus() {
             const savedUser = localStorage.getItem('currentUser');
-            const lastSearch = localStorage.getItem('lastTrackedFlights');
             
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
                 showMainInterface();
-                if (lastSearch) {
-                    loadLastTrackedFlights(lastSearch);
-                }
             } else {
                 showLoginInterface();
             }
@@ -449,10 +598,6 @@
                 };
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 showMainInterface();
-                const lastSearch = localStorage.getItem(`lastTrackedFlights_${username}`);
-                if (lastSearch) {
-                    loadLastTrackedFlights(lastSearch);
-                }
             } else {
                 alert('帳號或密碼錯誤');
             }
@@ -497,81 +642,75 @@
             showLoginInterface();
         }
         
-        // 載入上次追蹤的航班
-        function loadLastTrackedFlights(flightsData) {
-            if (!flightsData) return;
+        // 使用航空API查詢
+        function searchWithAPI() {
+            const flights = getFlightInputs();
+            if (!flights.length) return;
             
-            const data = JSON.parse(flightsData);
-            trackedFlights = data.flights;
-            displayTrackedFlights(trackedFlights);
+            trackedFlights = flights;
+            
+            // 顯示載入狀態
+            const flightList = document.getElementById('flightList');
+            flightList.innerHTML = '<div class="no-flights">🔄 使用航空API查詢中...</div>';
+            
+            // 模擬 API 呼叫
+            setTimeout(() => {
+                generateFlightData(flights, 'api');
+                startAutoUpdate();
+            }, 1500);
         }
         
-        // 儲存追蹤的航班
-        function saveTrackedFlights(flights) {
-            if (!currentUser) return;
+        // 使用AI助手查詢
+        function searchWithAI() {
+            const flights = getFlightInputs();
+            if (!flights.length) return;
             
-            const trackData = {
-                flights: flights,
-                timestamp: new Date().toISOString()
-            };
+            trackedFlights = flights;
             
-            localStorage.setItem(`lastTrackedFlights_${currentUser.username}`, JSON.stringify(trackData));
+            // 顯示載入狀態
+            const flightList = document.getElementById('flightList');
+            flightList.innerHTML = '<div class="no-flights">🤖 AI分析航班動態中...</div>';
             
-            // 更新上次追蹤顯示
-            const lastSearchSection = document.getElementById('lastSearchData');
-            lastSearchSection.innerHTML = `
-                <div style="opacity: 0.8; font-size: 14px;">
-                    已追蹤 ${flights.length} 個航班<br>
-                    最後更新: ${new Date().toLocaleTimeString('zh-TW')}
-                </div>
-            `;
+            // 模擬 AI 查詢
+            setTimeout(() => {
+                generateFlightData(flights, 'ai');
+                startAutoUpdate();
+            }, 2000);
         }
         
-        // 追蹤航班功能
-        function trackFlights() {
-            const flightInputs = document.querySelectorAll('.flight-input-row');
+        // 取得航班輸入資料
+        function getFlightInputs() {
+            const flightInputs = document.querySelectorAll('.flight-number-input');
+            const arrivalDate = document.getElementById('arrivalDate').value;
+            
             const flights = [];
             
-            // 收集所有航班資料
-            flightInputs.forEach(row => {
-                const numberInput = row.querySelector('.flight-number-input');
-                const dateInput = row.querySelector('.flight-date-input');
-                
-                const flightNumber = numberInput.value.trim().toUpperCase();
-                const flightDate = dateInput.value;
-                
-                if (flightNumber && flightDate) {
+            flightInputs.forEach(input => {
+                const flightNumber = input.value.trim().toUpperCase();
+                if (flightNumber) {
                     flights.push({
                         number: flightNumber,
-                        date: flightDate,
+                        date: arrivalDate,
                         timestamp: new Date().toISOString()
                     });
                 }
             });
             
             if (flights.length === 0) {
-                alert('請至少輸入一個航班號碼和日期');
-                return;
+                alert('請至少輸入一個航班號碼');
+                return [];
             }
             
-            showLoading(true);
-            trackedFlights = flights;
+            if (!arrivalDate) {
+                alert('請選擇抵達台灣日期');
+                return [];
+            }
             
-            // 儲存追蹤記錄
-            saveTrackedFlights(flights);
-            
-            // 模擬 API 呼叫
-            setTimeout(() => {
-                generateFlightData(flights);
-                showLoading(false);
-                
-                // 開始自動更新
-                startAutoUpdate();
-            }, 1500);
+            return flights;
         }
         
         // 產生航班資料
-        function generateFlightData(flights) {
+        function generateFlightData(flights, searchType) {
             const flightData = flights.map(flight => {
                 const airlineCode = flight.number.substring(0, 2);
                 const airlines = {
@@ -580,45 +719,67 @@
                     'VZ': '台灣虎航',
                     'JX': '星宇航空',
                     'JL': '日本航空',
-                    'NH': '全日空'
+                    'NH': '全日空',
+                    'UA': '聯合航空',
+                    'CX': '國泰航空',
+                    'IT': '台灣虎航'
                 };
                 
-                // 隨機生成航班狀態
-                const statuses = ['arrived', 'scheduled', 'delayed'];
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                // 根據查詢類型生成不同的資料
+                let status, delayReason;
+                if (searchType === 'ai') {
+                    // AI查詢會有更詳細的狀態
+                    const aiStatuses = [
+                        { status: 'delayed', reason: '天氣因素延誤' },
+                        { status: 'scheduled', reason: '準時起飛' },
+                        { status: 'arrived', reason: '已提前到達' },
+                        { status: 'delayed', reason: '機械檢查延誤' }
+                    ];
+                    const aiStatus = aiStatuses[Math.floor(Math.random() * aiStatuses.length)];
+                    status = aiStatus.status;
+                    delayReason = aiStatus.reason;
+                } else {
+                    // API查詢使用基本狀態
+                    const statuses = ['arrived', 'scheduled', 'delayed'];
+                    status = statuses[Math.floor(Math.random() * statuses.length)];
+                    delayReason = status === 'delayed' ? '航管流量管制' : '';
+                }
                 
-                // 生成時間（有些延誤，有些準時）
-                const scheduledTime = `14:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+                // 生成時間
+                const scheduledTime = `${Math.floor(Math.random() * 6) + 14}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
                 let actualTime = scheduledTime;
                 
                 if (status === 'delayed') {
-                    // 延誤 10-45 分鐘
                     const delayMinutes = Math.floor(Math.random() * 36) + 10;
                     const [hours, minutes] = scheduledTime.split(':').map(Number);
                     const delayedTime = new Date(0, 0, 0, hours, minutes + delayMinutes);
                     actualTime = `${delayedTime.getHours().toString().padStart(2, '0')}:${delayedTime.getMinutes().toString().padStart(2, '0')}`;
                 } else if (status === 'arrived') {
-                    // 提早 5-15 分鐘
                     const earlyMinutes = Math.floor(Math.random() * 11) + 5;
                     const [hours, minutes] = scheduledTime.split(':').map(Number);
                     const earlyTime = new Date(0, 0, 0, hours, minutes - earlyMinutes);
                     actualTime = `${earlyTime.getHours().toString().padStart(2, '0')}:${earlyTime.getMinutes().toString().padStart(2, '0')}`;
                 }
                 
+                const originAirports = ['NRT', 'KIX', 'HND', 'FUK', 'HKG', 'BKK', 'SIN', 'LAX'];
+                const originAirport = originAirports[Math.floor(Math.random() * originAirports.length)];
+                
                 return {
                     number: flight.number,
                     date: flight.date,
                     airline: airlines[airlineCode] || '航空公司',
                     status: status,
+                    delayReason: delayReason,
+                    searchType: searchType,
                     departure: {
-                        airport: 'TPE',
-                        terminal: Math.random() > 0.5 ? 'T1' : 'T2',
+                        airport: originAirport,
+                        terminal: ['MAIN', 'T1', 'T2'][Math.floor(Math.random() * 3)],
                         scheduled: scheduledTime,
                         actual: actualTime
                     },
                     arrival: {
-                        airport: ['NRT', 'KIX', 'HND', 'FUK'][Math.floor(Math.random() * 4)],
-                        terminal: ['MAIN', 'T1', 'T2'][Math.floor(Math.random() * 3)],
+                        airport: 'TPE',
+                        terminal: Math.random() > 0.5 ? 'T1' : 'T2',
                         scheduled: `18:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
                         actual: status === 'delayed' ? 
                                `18:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` : 
@@ -629,15 +790,16 @@
                 };
             });
             
-            displayTrackedFlights(flightData);
+            displayFlights(flightData);
         }
         
-        // 顯示追蹤的航班
-        function displayTrackedFlights(flights) {
-            const flightListDiv = document.getElementById('flightTrackerList');
+        // 顯示航班
+        function displayFlights(flights) {
+            const flightList = document.getElementById('flightList');
             
             if (flights.length === 0) {
-                flightListDiv.innerHTML = '<div class="no-flights">🛫 請輸入要追蹤的航班號碼</div>';
+                flightList.innerHTML = '<div class="no-flights">🛫 請輸入要追蹤的航班號碼</div>';
+                document.getElementById('updateStatus').classList.add('hidden');
                 return;
             }
             
@@ -659,67 +821,176 @@
                 };
                 
                 html += `
-                    <div class="tracker-item">
+                    <div class="flight-item" onclick="showFlightDetail('${flight.number}')">
                         <div class="flight-header">
-                            <div>
-                                <div class="flight-number">${flight.number}</div>
-                                <div class="flight-date">${formatDate(flight.date)}</div>
-                            </div>
+                            <div class="flight-number">${flight.number}</div>
                             <div class="flight-status status-${flight.status}">
                                 ${statusIcons[flight.status]} ${statusTexts[flight.status]}
                             </div>
                         </div>
                         
-                        <div class="flight-details">
+                        <div class="flight-route">
                             <div class="departure">
                                 <div class="time">${flight.departure.actual}</div>
                                 <div class="airport">${flight.departure.airport} ${flight.departure.terminal}</div>
-                                <div style="font-size: 12px; opacity: 0.7;">${flight.departure.scheduled}</div>
                             </div>
                             
-                            <div class="flight-route">→</div>
+                            <div style="text-align: center;">→</div>
                             
                             <div class="arrival">
                                 <div class="time">${flight.arrival.actual}</div>
                                 <div class="airport">${flight.arrival.airport} ${flight.arrival.terminal}</div>
-                                <div style="font-size: 12px; opacity: 0.7;">${flight.arrival.scheduled}</div>
                             </div>
                         </div>
                         
-                        <div class="flight-info">
-                            <div class="info-item">
+                        <div class="flight-details">
+                            <div class="detail-item">
                                 <span>航空公司</span>
                                 <span>${flight.airline}</span>
                             </div>
-                            <div class="info-item">
+                            <div class="detail-item">
                                 <span>登機門</span>
                                 <span>${flight.gate}</span>
                             </div>
-                            <div class="info-item">
+                            <div class="detail-item">
                                 <span>行李轉盤</span>
                                 <span>${flight.baggage}</span>
                             </div>
-                            <div class="info-item">
-                                <span>狀態</span>
-                                <span>${statusTexts[flight.status]}</span>
+                            <div class="detail-item">
+                                <span>查詢方式</span>
+                                <span>${flight.searchType === 'ai' ? '🤖 AI' : '🔗 API'}</span>
                             </div>
                         </div>
                     </div>
                 `;
             });
             
-            flightListDiv.innerHTML = html;
+            flightList.innerHTML = html;
             document.getElementById('updateStatus').classList.remove('hidden');
+        }
+        
+        // 顯示航班詳情
+        function showFlightDetail(flightNumber) {
+            const flight = trackedFlights.find(f => f.number === flightNumber);
+            if (!flight) return;
+            
+            currentSelectedFlight = flight;
+            document.getElementById('modalFlightNumber').textContent = `航班 ${flightNumber} 詳情`;
+            document.getElementById('flightDetailModal').classList.remove('hidden');
+            
+            // 載入基本資訊
+            loadBasicInfo(flight);
+            // 載入AI分析
+            loadAIAnalysis(flight);
+            // 載入相關資訊
+            loadRelatedInfo(flight);
+        }
+        
+        // 載入基本資訊
+        function loadBasicInfo(flight) {
+            const basicInfo = `
+                <div><strong>航空公司：</strong>${flight.airline}</div>
+                <div><strong>航班狀態：</strong>${flight.status === 'delayed' ? '🟡 延誤' : flight.status === 'arrived' ? '✅ 已到達' : '🟢 預定起飛'}</div>
+                <div><strong>出發機場：</strong>${flight.departure.airport} ${flight.departure.terminal}</div>
+                <div><strong>抵達機場：</strong>${flight.arrival.airport} ${flight.arrival.terminal}</div>
+                <div><strong>實際時間：</strong>${flight.departure.actual} → ${flight.arrival.actual}</div>
+                <div><strong>登機門：</strong>${flight.gate}</div>
+                <div><strong>行李轉盤：</strong>${flight.baggage}</div>
+                ${flight.delayReason ? `<div><strong>延誤原因：</strong>${flight.delayReason}</div>` : ''}
+            `;
+            
+            setTimeout(() => {
+                document.getElementById('modalBasicInfo').innerHTML = basicInfo;
+            }, 500);
+        }
+        
+        // 載入AI分析
+        function loadAIAnalysis(flight) {
+            setTimeout(() => {
+                const analysis = `
+                    <div><strong>📊 航班分析：</strong></div>
+                    <div>• ${flight.status === 'delayed' ? '目前航班因' + flight.delayReason + '有所延誤' : '航班目前狀態正常'}</div>
+                    <div>• 預計飛行時間約 ${Math.floor(Math.random() * 2) + 3} 小時</div>
+                    <div>• 建議提前 ${flight.status === 'delayed' ? '留意航班動態' : '2小時到達機場'}</div>
+                    <div>• ${flight.airline} 的服務評價良好</div>
+                `;
+                document.getElementById('modalAIAnalysis').innerHTML = analysis;
+            }, 1000);
+        }
+        
+        // 載入相關資訊
+        function loadRelatedInfo(flight) {
+            setTimeout(() => {
+                const relatedInfo = `
+                    <div><strong>🔍 即時資訊：</strong></div>
+                    <div>• ${flight.departure.airport} 機場天氣：晴朗</div>
+                    <div>• ${flight.arrival.airport} 機場狀況：正常</div>
+                    <div>• 最近相關新聞：無重大事件</div>
+                    <div>• 建議關注：${flight.delayReason ? '延誤補償資訊' : '航班準點情況'}</div>
+                `;
+                document.getElementById('modalRelatedInfo').innerHTML = relatedInfo;
+            }, 800);
+        }
+        
+        // 搜尋相關新聞
+        function searchRelatedNews() {
+            if (!currentSelectedFlight) return;
+            
+            document.getElementById('modalRelatedInfo').innerHTML = `
+                <div>📰 搜尋相關新聞中<span class="loading-dots"></span></div>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">正在搜尋 ${currentSelectedFlight.number} 航班相關資訊...</div>
+            `;
+            
+            setTimeout(() => {
+                const newsResults = `
+                    <div><strong>📰 最新相關新聞：</strong></div>
+                    <div>• "${currentSelectedFlight.airline} 近期航班準點率達 85%"</div>
+                    <div>• "${currentSelectedFlight.departure.airport} 機場加強安檢措施"</div>
+                    <div>• "旅遊旺季，建議提前辦理登機手續"</div>
+                    <div>• "${currentSelectedFlight.delayReason ? '近期' + currentSelectedFlight.delayReason + '情況說明' : '航班營運正常'}"</div>
+                `;
+                document.getElementById('modalRelatedInfo').innerHTML = newsResults;
+            }, 2000);
+        }
+        
+        // 取得AI詳細分析
+        function getAIDetailedInfo() {
+            if (!currentSelectedFlight) return;
+            
+            document.getElementById('modalAIAnalysis').innerHTML = `
+                <div>🤖 AI深度分析中<span class="loading-dots"></span></div>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">正在為 ${currentSelectedFlight.number} 進行詳細分析...</div>
+            `;
+            
+            setTimeout(() => {
+                const detailedAnalysis = `
+                    <div><strong>🤖 AI 深度分析報告：</strong></div>
+                    <div>• <strong>航班可靠性：</strong>${currentSelectedFlight.airline} 的準點率為 87%</div>
+                    <div>• <strong>天氣影響：</strong>目前航線天氣狀況良好</div>
+                    <div>• <strong>機場狀況：</strong>${currentSelectedFlight.arrival.airport} 機場流量正常</div>
+                    <div>• <strong>旅行建議：</strong>${currentSelectedFlight.status === 'delayed' ? '建議關注航空公司公告' : '可依原計劃安排行程'}</div>
+                    <div>• <strong>備選方案：</strong>如有變動，可考慮其他時段航班</div>
+                `;
+                document.getElementById('modalAIAnalysis').innerHTML = detailedAnalysis;
+            }, 2500);
+        }
+        
+        // 關閉彈出視窗
+        function closeModal() {
+            document.getElementById('flightDetailModal').classList.add('hidden');
+            currentSelectedFlight = null;
         }
         
         // 開始自動更新
         function startAutoUpdate() {
-            stopAutoUpdate(); // 先停止之前的更新
+            stopAutoUpdate();
             
             autoUpdateInterval = setInterval(() => {
-                console.log('自動更新航班狀態...');
-                generateFlightData(trackedFlights);
-            }, 30000); // 30秒更新一次
+                if (trackedFlights.length > 0) {
+                    const searchType = trackedFlights[0].searchType || 'api';
+                    generateFlightData(trackedFlights, searchType);
+                }
+            }, 30000);
         }
         
         // 停止自動更新
@@ -737,27 +1008,14 @@
                 input.value = '';
             });
             
-            const flightListDiv = document.getElementById('flightTrackerList');
-            flightListDiv.innerHTML = '<div class="no-flights">🛫 請輸入要追蹤的航班號碼</div>';
+            const flightList = document.getElementById('flightList');
+            flightList.innerHTML = '<div class="no-flights">🛫 請輸入要追蹤的航班號碼</div>';
             
             document.getElementById('updateStatus').classList.add('hidden');
             stopAutoUpdate();
             
             trackedFlights = [];
         }
-        
-        // 工具函數
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return `${date.getMonth() + 1}月${date.getDate()}日`;
-        }
-        
-        function showLoading(show) {
-            document.getElementById('loading').classList.toggle('hidden', !show);
-        }
-        
-        // 頁面卸載時停止自動更新
-        window.addEventListener('beforeunload', stopAutoUpdate);
     </script>
 </body>
 </html>
