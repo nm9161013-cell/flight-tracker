@@ -239,10 +239,10 @@
         }
         
         .hidden {
-            display: none;
+            display: none !important;
         }
         
-        /* 航班詳情彈出視窗 */
+        /* 航班詳情彈出視窗 - 修正版 */
         .modal {
             position: fixed;
             top: 0;
@@ -250,10 +250,14 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.8);
-            display: flex;
+            display: none; /* 預設為 none */
             align-items: center;
             justify-content: center;
             z-index: 1000;
+        }
+        
+        .modal.show {
+            display: flex; /* 只有當有 show class 時才顯示 */
         }
         
         .modal-content {
@@ -264,6 +268,7 @@
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
+            margin: 20px;
         }
         
         .modal-header {
@@ -289,6 +294,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-size: 16px;
         }
         
         .info-section {
@@ -453,8 +459,8 @@
         </div>
     </div>
 
-    <!-- 航班詳情彈出視窗 - 初始狀態為隱藏 -->
-    <div id="flightDetailModal" class="modal hidden">
+    <!-- 航班詳情彈出視窗 - 使用 display: none 而不是 hidden class -->
+    <div id="flightDetailModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title" id="modalFlightNumber">航班資訊</div>
@@ -495,6 +501,8 @@
             checkLoginStatus();
             initializeFlightInputs();
             setupArrivalDate();
+            // 確保彈出視窗是隱藏的
+            closeModal();
         });
         
         // PWA Service Worker 註冊
@@ -570,8 +578,7 @@
         function showLoginInterface() {
             document.getElementById('loginContainer').classList.remove('hidden');
             document.getElementById('mainContainer').classList.add('hidden');
-            // 確保彈出視窗是隱藏的
-            document.getElementById('flightDetailModal').classList.add('hidden');
+            closeModal(); // 確保彈出視窗關閉
         }
         
         // 顯示主介面
@@ -579,8 +586,7 @@
             document.getElementById('loginContainer').classList.add('hidden');
             document.getElementById('mainContainer').classList.remove('hidden');
             document.getElementById('userDisplayName').textContent = currentUser.username;
-            // 確保彈出視窗是隱藏的
-            document.getElementById('flightDetailModal').classList.add('hidden');
+            closeModal(); // 確保彈出視窗關閉
         }
         
         // 登入功能
@@ -873,14 +879,16 @@
             document.getElementById('updateStatus').classList.remove('hidden');
         }
         
-        // 顯示航班詳情 - 只有點擊航班時才呼叫
+        // 顯示航班詳情
         function showFlightDetail(flightNumber) {
             const flight = trackedFlights.find(f => f.number === flightNumber);
             if (!flight) return;
             
             currentSelectedFlight = flight;
             document.getElementById('modalFlightNumber').textContent = `航班 ${flightNumber} 詳情`;
-            document.getElementById('flightDetailModal').classList.remove('hidden');
+            
+            // 使用 show class 來顯示彈出視窗
+            document.getElementById('flightDetailModal').classList.add('show');
             
             // 重置載入狀態
             document.getElementById('modalBasicInfo').innerHTML = '載入中<span class="loading-dots"></span>';
@@ -985,7 +993,7 @@
         
         // 關閉彈出視窗
         function closeModal() {
-            document.getElementById('flightDetailModal').classList.add('hidden');
+            document.getElementById('flightDetailModal').classList.remove('show');
             currentSelectedFlight = null;
         }
         
