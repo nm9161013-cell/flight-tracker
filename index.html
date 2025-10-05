@@ -187,6 +187,8 @@
         .status-scheduled { background: #3b82f6; }
         .status-delayed { background: #f59e0b; }
         .status-cancelled { background: #ef4444; }
+        .status-active { background: #8b5cf6; }
+        .status-landed { background: #10b981; }
         
         .flight-route {
             display: grid;
@@ -238,11 +240,20 @@
             margin-top: 8px;
         }
         
+        .api-info {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
         .hidden {
             display: none !important;
         }
         
-        /* 航班詳情彈出視窗 - 修正版 */
+        /* 航班詳情彈出視窗 */
         .modal {
             position: fixed;
             top: 0;
@@ -250,14 +261,14 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.8);
-            display: none; /* 預設為 none */
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
         
         .modal.show {
-            display: flex; /* 只有當有 show class 時才顯示 */
+            display: flex;
         }
         
         .modal-content {
@@ -435,7 +446,7 @@
             <button class="add-flight-btn" onclick="addFlightInput()">＋ 新增航班</button>
             
             <div class="button-group">
-                <button class="api-btn" onclick="searchWithAPI()">航空API查詢</button>
+                <button class="api-btn" onclick="searchWithRealAPI()">航空API查詢</button>
                 <button class="ai-btn" onclick="searchWithAI()">AI助手查詢</button>
             </div>
             
@@ -459,7 +470,7 @@
         </div>
     </div>
 
-    <!-- 航班詳情彈出視窗 - 使用 display: none 而不是 hidden class -->
+    <!-- 航班詳情彈出視窗 -->
     <div id="flightDetailModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -490,6 +501,18 @@
     </div>
 
     <script>
+        // API 設定
+        const API_CONFIG = {
+            aviationstack: {
+                key: 'bd829201a1e397fa88642740d3a34eb9',
+                endpoint: 'http://api.aviationstack.com/v1/flights'
+            },
+            deepseek: {
+                key: 'sk-508802cf041f49db9cf493743052f075',
+                endpoint: 'https://api.deepseek.com/chat/completions'
+            }
+        };
+
         // 使用者資料和狀態
         let currentUser = null;
         let autoUpdateInterval = null;
@@ -501,7 +524,6 @@
             checkLoginStatus();
             initializeFlightInputs();
             setupArrivalDate();
-            // 確保彈出視窗是隱藏的
             closeModal();
         });
         
@@ -530,7 +552,6 @@
             const flightInputs = document.getElementById('flightInputs');
             flightInputs.innerHTML = '';
             
-            // 預設顯示3個輸入欄位
             for (let i = 0; i < 3; i++) {
                 addFlightInput();
             }
@@ -578,7 +599,7 @@
         function showLoginInterface() {
             document.getElementById('loginContainer').classList.remove('hidden');
             document.getElementById('mainContainer').classList.add('hidden');
-            closeModal(); // 確保彈出視窗關閉
+            closeModal();
         }
         
         // 顯示主介面
@@ -586,7 +607,7 @@
             document.getElementById('loginContainer').classList.add('hidden');
             document.getElementById('mainContainer').classList.remove('hidden');
             document.getElementById('userDisplayName').textContent = currentUser.username;
-            closeModal(); // 確保彈出視窗關閉
+            closeModal();
         }
         
         // 登入功能
@@ -652,40 +673,165 @@
             showLoginInterface();
         }
         
-        // 使用航空API查詢
-        function searchWithAPI() {
+        // 使用真實 AviationStack API 查詢
+        async function searchWithRealAPI() {
             const flights = getFlightInputs();
             if (!flights.length) return;
             
             trackedFlights = flights;
             
-            // 顯示載入狀態
             const flightList = document.getElementById('flightList');
-            flightList.innerHTML = '<div class="no-flights">🔄 使用航空API查詢中...</div>';
+            flightList.innerHTML = '<div class="no-flights">🔄 使用真實API查詢中...</div>';
             
-            // 模擬 API 呼叫
+            try {
+                const flightData = [];
+                for (const flight of flights) {
+                    const realData = await getAviationStackData(flight.number);
+                    if (realData) {
+                        flightData.push(realData);
+                    }
+                }
+                
+                if (flightData.length > 0) {
+                    displayFlights(flightData);
+                    startAutoUpdate();
+                } else {
+                    // 如果API查詢失敗，使用模擬資料
+                    fallbackToMockData(flights);
+                }
+            } catch (error) {
+                console.error('API查詢失敗:', error);
+                fallbackToMockData(flights);
+            }
+        }
+        
+        // 取得 AviationStack 真實資料
+        async function getAviationStackData(flightNumber) {
+            try {
+                const url = `${API_CONFIG.aviationstack.endpoint}?access_key=${API_CONFIG.aviationstack.key}&flight_iata=${flightNumber}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0) {
+                    const flight = data.data[0];
+                    return formatAviationStackData(flight);
+                }
+                return null;
+            } catch (error) {
+                console.error('AviationStack API 錯誤:', error);
+                return null;
+            }
+        }
+        
+        // 格式化 AviationStack 資料
+        function formatAviationStackData(flight) {
+            const statusMapping = {
+                'scheduled': 'scheduled',
+                'active': 'active',
+                'landed': 'landed',
+                'cancelled': 'cancelled',
+                'incident': 'delayed',
+                'diverted': 'delayed'
+            };
+            
+            return {
+                number: flight.flight.iata,
+                date: flight.flight_date,
+                airline: flight.airline.name,
+                status: statusMapping[flight.flight_status] || 'scheduled',
+                delayReason: flight.delay ? '航班延誤' : '',
+                searchType: 'api',
+                departure: {
+                    airport: flight.departure.iata,
+                    terminal: flight.departure.terminal || 'MAIN',
+                    scheduled: flight.departure.scheduled ? flight.departure.scheduled.split('T')[1].substring(0, 5) : '--:--',
+                    actual: flight.departure.estimated ? flight.departure.estimated.split('T')[1].substring(0, 5) : '--:--'
+                },
+                arrival: {
+                    airport: flight.arrival.iata,
+                    terminal: flight.arrival.terminal || 'MAIN',
+                    scheduled: flight.arrival.scheduled ? flight.arrival.scheduled.split('T')[1].substring(0, 5) : '--:--',
+                    actual: flight.arrival.estimated ? flight.arrival.estimated.split('T')[1].substring(0, 5) : '--:--'
+                },
+                gate: flight.arrival.gate || '待分配',
+                baggage: flight.arrival.baggage || '待通知',
+                isRealData: true
+            };
+        }
+        
+        // 降級到模擬資料
+        function fallbackToMockData(flights) {
+            const flightList = document.getElementById('flightList');
+            flightList.innerHTML = '<div class="no-flights">⚠️ API暫時無法使用，使用模擬資料...</div>';
+            
             setTimeout(() => {
                 generateFlightData(flights, 'api');
                 startAutoUpdate();
-            }, 1500);
+            }, 1000);
         }
         
         // 使用AI助手查詢
-        function searchWithAI() {
+        async function searchWithAI() {
             const flights = getFlightInputs();
             if (!flights.length) return;
             
             trackedFlights = flights;
             
-            // 顯示載入狀態
             const flightList = document.getElementById('flightList');
             flightList.innerHTML = '<div class="no-flights">🤖 AI分析航班動態中...</div>';
             
-            // 模擬 AI 查詢
-            setTimeout(() => {
-                generateFlightData(flights, 'ai');
-                startAutoUpdate();
-            }, 2000);
+            try {
+                // 先取得真實資料
+                const flightData = [];
+                for (const flight of flights) {
+                    const realData = await getAviationStackData(flight.number);
+                    if (realData) {
+                        // 使用AI分析航班資料
+                        const aiAnalysis = await getAIAnalysis(realData);
+                        realData.aiAnalysis = aiAnalysis;
+                        flightData.push(realData);
+                    }
+                }
+                
+                if (flightData.length > 0) {
+                    displayFlights(flightData);
+                    startAutoUpdate();
+                } else {
+                    fallbackToMockData(flights);
+                }
+            } catch (error) {
+                console.error('AI查詢失敗:', error);
+                fallbackToMockData(flights);
+            }
+        }
+        
+        // 取得AI分析
+        async function getAIAnalysis(flightInfo) {
+            try {
+                const response = await fetch(API_CONFIG.deepseek.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_CONFIG.deepseek.key}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: `請分析航班 ${flightInfo.number} (${flightInfo.airline}) 從 ${flightInfo.departure.airport} 到 ${flightInfo.arrival.airport} 的航班狀況。狀態: ${flightInfo.status}。請提供旅行建議和注意事項。`
+                            }
+                        ],
+                        max_tokens: 500
+                    })
+                });
+                
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('DeepSeek API 錯誤:', error);
+                return 'AI分析暫時無法使用，請稍後再試。';
+            }
         }
         
         // 取得航班輸入資料
@@ -719,43 +865,20 @@
             return flights;
         }
         
-        // 產生航班資料
+        // 產生模擬航班資料（備用）
         function generateFlightData(flights, searchType) {
             const flightData = flights.map(flight => {
                 const airlineCode = flight.number.substring(0, 2);
                 const airlines = {
-                    'BR': '長榮航空',
-                    'CI': '中華航空',
-                    'VZ': '台灣虎航',
-                    'JX': '星宇航空',
-                    'JL': '日本航空',
-                    'NH': '全日空',
-                    'UA': '聯合航空',
-                    'CX': '國泰航空',
-                    'IT': '台灣虎航'
+                    'BR': '長榮航空', 'CI': '中華航空', 'VZ': '台灣虎航',
+                    'JX': '星宇航空', 'JL': '日本航空', 'NH': '全日空',
+                    'UA': '聯合航空', 'CX': '國泰航空', 'IT': '台灣虎航'
                 };
                 
-                // 根據查詢類型生成不同的資料
-                let status, delayReason;
-                if (searchType === 'ai') {
-                    // AI查詢會有更詳細的狀態
-                    const aiStatuses = [
-                        { status: 'delayed', reason: '天氣因素延誤' },
-                        { status: 'scheduled', reason: '準時起飛' },
-                        { status: 'arrived', reason: '已提前到達' },
-                        { status: 'delayed', reason: '機械檢查延誤' }
-                    ];
-                    const aiStatus = aiStatuses[Math.floor(Math.random() * aiStatuses.length)];
-                    status = aiStatus.status;
-                    delayReason = aiStatus.reason;
-                } else {
-                    // API查詢使用基本狀態
-                    const statuses = ['arrived', 'scheduled', 'delayed'];
-                    status = statuses[Math.floor(Math.random() * statuses.length)];
-                    delayReason = status === 'delayed' ? '航管流量管制' : '';
-                }
+                const statuses = ['arrived', 'scheduled', 'delayed'];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const delayReason = status === 'delayed' ? '航管流量管制' : '';
                 
-                // 生成時間
                 const scheduledTime = `${Math.floor(Math.random() * 6) + 14}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
                 let actualTime = scheduledTime;
                 
@@ -764,11 +887,6 @@
                     const [hours, minutes] = scheduledTime.split(':').map(Number);
                     const delayedTime = new Date(0, 0, 0, hours, minutes + delayMinutes);
                     actualTime = `${delayedTime.getHours().toString().padStart(2, '0')}:${delayedTime.getMinutes().toString().padStart(2, '0')}`;
-                } else if (status === 'arrived') {
-                    const earlyMinutes = Math.floor(Math.random() * 11) + 5;
-                    const [hours, minutes] = scheduledTime.split(':').map(Number);
-                    const earlyTime = new Date(0, 0, 0, hours, minutes - earlyMinutes);
-                    actualTime = `${earlyTime.getHours().toString().padStart(2, '0')}:${earlyTime.getMinutes().toString().padStart(2, '0')}`;
                 }
                 
                 const originAirports = ['NRT', 'KIX', 'HND', 'FUK', 'HKG', 'BKK', 'SIN', 'LAX'];
@@ -791,12 +909,11 @@
                         airport: 'TPE',
                         terminal: Math.random() > 0.5 ? 'T1' : 'T2',
                         scheduled: `18:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
-                        actual: status === 'delayed' ? 
-                               `18:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` : 
-                               `17:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`
+                        actual: status === 'delayed' ? `18:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` : `17:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`
                     },
                     gate: `${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${Math.floor(Math.random() * 10) + 1}`,
-                    baggage: `${Math.floor(Math.random() * 5) + 1}`
+                    baggage: `${Math.floor(Math.random() * 5) + 1}`,
+                    isRealData: false
                 };
             });
             
@@ -817,18 +934,18 @@
             
             flights.forEach(flight => {
                 const statusTexts = {
-                    'arrived': '已到達',
-                    'scheduled': '預定起飛',
-                    'delayed': '延誤',
-                    'cancelled': '已取消'
+                    'arrived': '已到達', 'scheduled': '預定起飛', 'delayed': '延誤',
+                    'cancelled': '已取消', 'active': '飛行中', 'landed': '已降落'
                 };
                 
                 const statusIcons = {
-                    'arrived': '✅',
-                    'scheduled': '🟢',
-                    'delayed': '🟡',
-                    'cancelled': '🔴'
+                    'arrived': '✅', 'scheduled': '🟢', 'delayed': '🟡',
+                    'cancelled': '🔴', 'active': '🟣', 'landed': '✅'
                 };
+                
+                const dataSource = flight.isRealData ? 
+                    '<div class="api-info">✅ 真實航班資料</div>' : 
+                    '<div class="api-info">⚠️ 演示資料</div>';
                 
                 html += `
                     <div class="flight-item" onclick="showFlightDetail('${flight.number}')">
@@ -838,21 +955,18 @@
                                 ${statusIcons[flight.status]} ${statusTexts[flight.status]}
                             </div>
                         </div>
-                        
+                        ${dataSource}
                         <div class="flight-route">
                             <div class="departure">
                                 <div class="time">${flight.departure.actual}</div>
                                 <div class="airport">${flight.departure.airport} ${flight.departure.terminal}</div>
                             </div>
-                            
                             <div style="text-align: center;">→</div>
-                            
                             <div class="arrival">
                                 <div class="time">${flight.arrival.actual}</div>
                                 <div class="airport">${flight.arrival.airport} ${flight.arrival.terminal}</div>
                             </div>
                         </div>
-                        
                         <div class="flight-details">
                             <div class="detail-item">
                                 <span>航空公司</span>
@@ -886,20 +1000,14 @@
             
             currentSelectedFlight = flight;
             document.getElementById('modalFlightNumber').textContent = `航班 ${flightNumber} 詳情`;
-            
-            // 使用 show class 來顯示彈出視窗
             document.getElementById('flightDetailModal').classList.add('show');
             
-            // 重置載入狀態
             document.getElementById('modalBasicInfo').innerHTML = '載入中<span class="loading-dots"></span>';
             document.getElementById('modalAIAnalysis').innerHTML = '分析中<span class="loading-dots"></span>';
             document.getElementById('modalRelatedInfo').innerHTML = '搜尋中<span class="loading-dots"></span>';
             
-            // 載入基本資訊
             loadBasicInfo(flight);
-            // 載入AI分析
             loadAIAnalysis(flight);
-            // 載入相關資訊
             loadRelatedInfo(flight);
         }
         
@@ -908,30 +1016,27 @@
             setTimeout(() => {
                 const basicInfo = `
                     <div><strong>航空公司：</strong>${flight.airline}</div>
-                    <div><strong>航班狀態：</strong>${flight.status === 'delayed' ? '🟡 延誤' : flight.status === 'arrived' ? '✅ 已到達' : '🟢 預定起飛'}</div>
+                    <div><strong>航班狀態：</strong>${flight.status === 'delayed' ? '🟡 延誤' : flight.status === 'arrived' ? '✅ 已到達' : flight.status === 'active' ? '🟣 飛行中' : '🟢 預定起飛'}</div>
                     <div><strong>出發機場：</strong>${flight.departure.airport} ${flight.departure.terminal}</div>
                     <div><strong>抵達機場：</strong>${flight.arrival.airport} ${flight.arrival.terminal}</div>
                     <div><strong>實際時間：</strong>${flight.departure.actual} → ${flight.arrival.actual}</div>
                     <div><strong>登機門：</strong>${flight.gate}</div>
                     <div><strong>行李轉盤：</strong>${flight.baggage}</div>
                     ${flight.delayReason ? `<div><strong>延誤原因：</strong>${flight.delayReason}</div>` : ''}
+                    ${flight.isRealData ? '<div><strong>資料來源：</strong>✅ 真實航班資料</div>' : '<div><strong>資料來源：</strong>⚠️ 演示資料</div>'}
                 `;
                 document.getElementById('modalBasicInfo').innerHTML = basicInfo;
             }, 500);
         }
         
         // 載入AI分析
-        function loadAIAnalysis(flight) {
-            setTimeout(() => {
-                const analysis = `
-                    <div><strong>📊 航班分析：</strong></div>
-                    <div>• ${flight.status === 'delayed' ? '目前航班因' + flight.delayReason + '有所延誤' : '航班目前狀態正常'}</div>
-                    <div>• 預計飛行時間約 ${Math.floor(Math.random() * 2) + 3} 小時</div>
-                    <div>• 建議提前 ${flight.status === 'delayed' ? '留意航班動態' : '2小時到達機場'}</div>
-                    <div>• ${flight.airline} 的服務評價良好</div>
-                `;
-                document.getElementById('modalAIAnalysis').innerHTML = analysis;
-            }, 1000);
+        async function loadAIAnalysis(flight) {
+            try {
+                const aiResponse = await getAIAnalysis(flight);
+                document.getElementById('modalAIAnalysis').innerHTML = aiResponse;
+            } catch (error) {
+                document.getElementById('modalAIAnalysis').innerHTML = 'AI分析暫時無法使用。';
+            }
         }
         
         // 載入相關資訊
@@ -970,7 +1075,7 @@
         }
         
         // 取得AI詳細分析
-        function getAIDetailedInfo() {
+        async function getAIDetailedInfo() {
             if (!currentSelectedFlight) return;
             
             document.getElementById('modalAIAnalysis').innerHTML = `
@@ -978,17 +1083,12 @@
                 <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">正在為 ${currentSelectedFlight.number} 進行詳細分析...</div>
             `;
             
-            setTimeout(() => {
-                const detailedAnalysis = `
-                    <div><strong>🤖 AI 深度分析報告：</strong></div>
-                    <div>• <strong>航班可靠性：</strong>${currentSelectedFlight.airline} 的準點率為 87%</div>
-                    <div>• <strong>天氣影響：</strong>目前航線天氣狀況良好</div>
-                    <div>• <strong>機場狀況：</strong>${currentSelectedFlight.arrival.airport} 機場流量正常</div>
-                    <div>• <strong>旅行建議：</strong>${currentSelectedFlight.status === 'delayed' ? '建議關注航空公司公告' : '可依原計劃安排行程'}</div>
-                    <div>• <strong>備選方案：</strong>如有變動，可考慮其他時段航班</div>
-                `;
+            try {
+                const detailedAnalysis = await getAIAnalysis(currentSelectedFlight);
                 document.getElementById('modalAIAnalysis').innerHTML = detailedAnalysis;
-            }, 2500);
+            } catch (error) {
+                document.getElementById('modalAIAnalysis').innerHTML = 'AI詳細分析暫時無法使用。';
+            }
         }
         
         // 關閉彈出視窗
@@ -1004,7 +1104,11 @@
             autoUpdateInterval = setInterval(() => {
                 if (trackedFlights.length > 0) {
                     const searchType = trackedFlights[0].searchType || 'api';
-                    generateFlightData(trackedFlights, searchType);
+                    if (searchType === 'api') {
+                        searchWithRealAPI();
+                    } else {
+                        searchWithAI();
+                    }
                 }
             }, 30000);
         }
