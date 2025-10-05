@@ -37,6 +37,13 @@
             font-size: 28px;
         }
         
+        .login-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
         .search-section {
             display: flex;
             flex-direction: column;
@@ -44,7 +51,7 @@
             margin: 25px 0;
         }
         
-        input {
+        input, select {
             padding: 16px;
             border: none;
             border-radius: 12px;
@@ -60,6 +67,36 @@
             background: #3b82f6;
             color: white;
             cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .button-group button {
+            flex: 1;
+        }
+        
+        .clear-btn {
+            background: #ef4444;
+        }
+        
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+        
+        .ai-btn {
+            background: #10b981;
+        }
+        
+        .ai-btn:hover {
+            background: #059669;
         }
         
         .result-section {
@@ -90,40 +127,114 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
+        
+        .flight-list {
+            margin-top: 15px;
+        }
+        
+        .flight-item {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .status-updating {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: #6b7280;
+            font-size: 14px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 登入區塊 -->
+    <div id="loginContainer" class="container">
         <h1>✈️ 智慧航班追蹤</h1>
-        <p style="text-align: center; opacity: 0.8;">即時航班動態 + AI 助理</p>
+        <p style="text-align: center; opacity: 0.8;">請先登入您的帳號</p>
+        
+        <div class="login-section">
+            <input type="text" id="username" placeholder="帳號" />
+            <input type="password" id="password" placeholder="密碼" />
+            <button onclick="login()">登入</button>
+            <button onclick="register()" style="background: #8b5cf6;">註冊新帳號</button>
+        </div>
+    </div>
+
+    <!-- 主功能區塊 -->
+    <div id="mainContainer" class="container hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>✈️ 智慧航班追蹤</h1>
+            <button class="logout-btn" onclick="logout()">登出</button>
+        </div>
+        <p style="text-align: center; opacity: 0.8;">歡迎回來，<span id="userDisplayName">使用者</span>！</p>
         
         <div class="search-section">
             <input type="text" id="flightNumber" placeholder="輸入航班號碼 (例如: CI123)" />
-            <button onclick="searchFlight()">查詢航班</button>
-            <button onclick="askAI()" style="background: #10b981;">AI 助理</button>
+            <input type="date" id="flightDate" />
+            
+            <div class="button-group">
+                <button onclick="searchFlight()">查詢航班</button>
+                <button class="clear-btn" onclick="clearSearch()">清除</button>
+            </div>
+            <button class="ai-btn" onclick="askAI()">AI 助理</button>
         </div>
         
         <div id="loading" class="hidden">🔄 載入中...</div>
         
-        <div id="flightResult" class="result-section hidden">
+        <!-- 單一航班結果 -->
+        <div id="singleFlightResult" class="result-section hidden">
             <h3>📊 航班資訊</h3>
             <div id="flightDetails" class="flight-info"></div>
+        </div>
+        
+        <!-- 多航班結果 -->
+        <div id="multiFlightResult" class="result-section hidden">
+            <h3>📊 航班列表 (5個航班)</h3>
+            <div id="flightList" class="flight-list"></div>
+            <div id="updateStatus" class="status-updating">
+                🔄 每30秒自動更新...
+            </div>
         </div>
         
         <div id="aiResult" class="result-section hidden">
             <h3>🤖 AI 分析與建議</h3>
             <div id="aiResponse" style="margin-top: 15px; line-height: 1.5;"></div>
         </div>
+        
+        <!-- 上次查詢記錄 -->
+        <div id="lastSearchSection" class="result-section">
+            <h3>📝 上次查詢記錄</h3>
+            <div id="lastSearchData"></div>
+        </div>
     </div>
     
     <div class="container tips">
         <h4>💡 使用提示：</h4>
-        <p>• 輸入航班號碼查詢即時狀態</p>
+        <p>• 輸入航班號碼和日期查詢</p>
+        <p>• 可同時顯示5個相關航班</p>
+        <p>• 每30秒自動更新航班狀態</p>
         <p>• 使用 AI 助理獲得旅行建議</p>
         <p>• 可添加到主畫面像 App 一樣使用</p>
     </div>
 
     <script>
+        // 使用者資料和狀態
+        let currentUser = null;
+        let autoUpdateInterval = null;
+        
+        // 檢查登入狀態
+        checkLoginStatus();
+        
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
@@ -137,46 +248,278 @@
             });
         }
         
+        // 檢查登入狀態
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('currentUser');
+            const lastSearch = localStorage.getItem('lastSearch');
+            
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainInterface();
+                loadLastSearch(lastSearch);
+            } else {
+                showLoginInterface();
+            }
+        }
+        
+        // 顯示登入介面
+        function showLoginInterface() {
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('mainContainer').classList.add('hidden');
+        }
+        
+        // 顯示主介面
+        function showMainInterface() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('hidden');
+            document.getElementById('userDisplayName').textContent = currentUser.username;
+            
+            // 設定日期預設為今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('flightDate').value = today;
+        }
+        
+        // 登入功能
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                alert('請輸入帳號和密碼');
+                return;
+            }
+            
+            // 簡單的用戶驗證（實際專案應該有後端）
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
+            if (users[username] && users[username].password === password) {
+                currentUser = {
+                    username: username,
+                    lastLogin: new Date().toISOString()
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMainInterface();
+                loadLastSearch(localStorage.getItem(`lastSearch_${username}`));
+            } else {
+                alert('帳號或密碼錯誤');
+            }
+        }
+        
+        // 註冊功能
+        function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                alert('請輸入帳號和密碼');
+                return;
+            }
+            
+            if (password.length < 4) {
+                alert('密碼至少需要4個字元');
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
+            if (users[username]) {
+                alert('帳號已存在');
+                return;
+            }
+            
+            users[username] = {
+                password: password,
+                createdAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('註冊成功！請登入');
+        }
+        
+        // 登出功能
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            stopAutoUpdate();
+            showLoginInterface();
+        }
+        
+        // 載入上次查詢記錄
+        function loadLastSearch(lastSearchData) {
+            const lastSearchSection = document.getElementById('lastSearchData');
+            
+            if (lastSearchData) {
+                const data = JSON.parse(lastSearchData);
+                lastSearchSection.innerHTML = `
+                    <div class="info-item">
+                        <strong>航班：</strong> ${data.flightNumber}<br>
+                        <strong>日期：</strong> ${data.date}<br>
+                        <strong>查詢時間：</strong> ${new Date(data.timestamp).toLocaleString('zh-TW')}
+                    </div>
+                `;
+            } else {
+                lastSearchSection.innerHTML = '<p>尚無查詢記錄</p>';
+            }
+        }
+        
+        // 儲存查詢記錄
+        function saveSearch(flightNumber, date) {
+            if (!currentUser) return;
+            
+            const searchData = {
+                flightNumber: flightNumber,
+                date: date,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`lastSearch_${currentUser.username}`, JSON.stringify(searchData));
+            loadLastSearch(JSON.stringify(searchData));
+        }
+        
         // 航班查詢功能
         async function searchFlight() {
-            const flightNumber = document.getElementById('flightNumber').value.trim();
+            const flightNumber = document.getElementById('flightNumber').value.trim().toUpperCase();
+            const flightDate = document.getElementById('flightDate').value;
             
             if (!flightNumber) {
                 alert('請輸入航班號碼');
                 return;
             }
             
+            if (!flightDate) {
+                alert('請選擇日期');
+                return;
+            }
+            
             showLoading(true);
             hideResults();
+            stopAutoUpdate();
+            
+            // 儲存查詢記錄
+            saveSearch(flightNumber, flightDate);
             
             // 模擬 API 呼叫
             setTimeout(() => {
-                const flightData = {
-                    number: flightNumber,
-                    status: 'scheduled',
-                    departure: {
-                        airport: 'TPE',
-                        city: '台北',
-                        time: '14:30'
-                    },
-                    arrival: {
-                        airport: 'NRT', 
-                        city: '東京',
-                        time: '18:45'
-                    },
-                    airline: flightNumber.startsWith('CI') ? '中華航空' : 
-                             flightNumber.startsWith('BR') ? '長榮航空' : '航空公司',
-                    duration: '3小時15分鐘'
-                };
-                
-                displayFlightResult(flightData);
+                generateFlightData(flightNumber, flightDate);
                 showLoading(false);
+                
+                // 開始自動更新
+                startAutoUpdate(flightNumber, flightDate);
             }, 1500);
+        }
+        
+        // 產生航班資料（5個航班）
+        function generateFlightData(mainFlightNumber, date) {
+            const airlines = {
+                'CI': '中華航空',
+                'BR': '長榮航空', 
+                'VZ': '台灣虎航',
+                'JL': '日本航空',
+                'NH': '全日空'
+            };
+            
+            const airlineCode = mainFlightNumber.substring(0, 2);
+            const airlineName = airlines[airlineCode] || '航空公司';
+            
+            const flights = [];
+            
+            // 主要查詢航班
+            flights.push({
+                number: mainFlightNumber,
+                status: 'scheduled',
+                departure: { airport: 'TPE', city: '台北', time: '14:30' },
+                arrival: { airport: 'NRT', city: '東京', time: '18:45' },
+                airline: airlineName,
+                duration: '3小時15分鐘',
+                gate: Math.random() > 0.5 ? 'A' + Math.floor(Math.random() * 10 + 1) : 'B' + Math.floor(Math.random() * 10 + 1),
+                terminal: Math.random() > 0.5 ? '1' : '2'
+            });
+            
+            // 產生4個相關航班
+            for (let i = 1; i <= 4; i++) {
+                const hourOffset = (i - 1) * 2;
+                flights.push({
+                    number: `${airlineCode}${parseInt(mainFlightNumber.substring(2)) + i}`,
+                    status: Math.random() > 0.7 ? 'delayed' : 'scheduled',
+                    departure: { 
+                        airport: 'TPE', 
+                        city: '台北', 
+                        time: `${14 + hourOffset}:${Math.random() > 0.5 ? '00' : '30'}`
+                    },
+                    arrival: { 
+                        airport: 'NRT', 
+                        city: '東京', 
+                        time: `${18 + hourOffset}:${Math.random() > 0.5 ? '15' : '45'}`
+                    },
+                    airline: airlineName,
+                    duration: `${3 + Math.floor(Math.random() * 2)}小時${Math.random() > 0.5 ? '15' : '45'}分鐘`,
+                    gate: Math.random() > 0.5 ? 'A' + Math.floor(Math.random() * 10 + 1) : 'B' + Math.floor(Math.random() * 10 + 1),
+                    terminal: Math.random() > 0.5 ? '1' : '2'
+                });
+            }
+            
+            displayMultipleFlights(flights);
+        }
+        
+        // 顯示多個航班
+        function displayMultipleFlights(flights) {
+            const flightListDiv = document.getElementById('flightList');
+            let html = '';
+            
+            flights.forEach((flight, index) => {
+                const statusIcon = flight.status === 'delayed' ? '🟡' : '🟢';
+                const statusText = flight.status === 'delayed' ? '延誤' : '預定起飛';
+                
+                html += `
+                    <div class="flight-item">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <h4>${flight.number} - ${flight.airline}</h4>
+                            <span>${statusIcon} ${statusText}</span>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <div>🛫 ${flight.departure.city} (${flight.departure.airport}) ${flight.departure.time}</div>
+                            <div>🛬 ${flight.arrival.city} (${flight.arrival.airport}) ${flight.arrival.time}</div>
+                            <div>⏱️ 飛行時間: ${flight.duration}</div>
+                            <div>🚪 登機門: ${flight.gate} • 航廈: ${flight.terminal}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            flightListDiv.innerHTML = html;
+            document.getElementById('multiFlightResult').classList.remove('hidden');
+        }
+        
+        // 開始自動更新
+        function startAutoUpdate(flightNumber, date) {
+            stopAutoUpdate(); // 先停止之前的更新
+            
+            autoUpdateInterval = setInterval(() => {
+                console.log('自動更新航班狀態...');
+                generateFlightData(flightNumber, date);
+            }, 30000); // 30秒更新一次
+        }
+        
+        // 停止自動更新
+        function stopAutoUpdate() {
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+                autoUpdateInterval = null;
+            }
+        }
+        
+        // 清除搜尋
+        function clearSearch() {
+            document.getElementById('flightNumber').value = '';
+            document.getElementById('flightDate').value = new Date().toISOString().split('T')[0];
+            hideResults();
+            stopAutoUpdate();
         }
         
         // AI 助理功能
         async function askAI() {
             const flightNumber = document.getElementById('flightNumber').value.trim();
+            const flightDate = document.getElementById('flightDate').value;
             
             if (!flightNumber) {
                 alert('請先輸入航班號碼');
@@ -220,37 +563,13 @@
             }, 2000);
         }
         
-        function displayFlightResult(data) {
-            const detailsDiv = document.getElementById('flightDetails');
-            detailsDiv.innerHTML = `
-                <div class="info-item">
-                    <strong>航班號碼：</strong> ${data.number}
-                </div>
-                <div class="info-item">
-                    <strong>航空公司：</strong> ${data.airline}
-                </div>
-                <div class="info-item">
-                    <strong>狀態：</strong> 🟢 預定起飛
-                </div>
-                <div class="info-item">
-                    <strong>出發：</strong> ${data.departure.city} (${data.departure.airport}) ${data.departure.time}
-                </div>
-                <div class="info-item">
-                    <strong>抵達：</strong> ${data.arrival.city} (${data.arrival.airport}) ${data.arrival.time}
-                </div>
-                <div class="info-item">
-                    <strong>飛行時間：</strong> ${data.duration}
-                </div>
-            `;
-            document.getElementById('flightResult').classList.remove('hidden');
-        }
-        
         function showLoading(show) {
             document.getElementById('loading').classList.toggle('hidden', !show);
         }
         
         function hideResults() {
-            document.getElementById('flightResult').classList.add('hidden');
+            document.getElementById('singleFlightResult').classList.add('hidden');
+            document.getElementById('multiFlightResult').classList.add('hidden');
             document.getElementById('aiResult').classList.add('hidden');
         }
         
@@ -260,6 +579,9 @@
                 searchFlight();
             }
         });
+        
+        // 頁面卸載時停止自動更新
+        window.addEventListener('beforeunload', stopAutoUpdate);
     </script>
 </body>
 </html>
