@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧航班追蹤</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .search-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        
+        input {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .result-section {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tips {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        
+        .flight-info {
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ 智慧航班追蹤</h1>
+        <p style="text-align: center; opacity: 0.8;">即時航班動態 + AI 助理</p>
+        
+        <div class="search-section">
+            <input type="text" id="flightNumber" placeholder="輸入航班號碼 (例如: CI123)" />
+            <button onclick="searchFlight()">查詢航班</button>
+            <button onclick="askAI()" style="background: #10b981;">AI 助理</button>
+        </div>
+        
+        <div id="loading" class="hidden">🔄 載入中...</div>
+        
+        <div id="flightResult" class="result-section hidden">
+            <h3>📊 航班資訊</h3>
+            <div id="flightDetails" class="flight-info"></div>
+        </div>
+        
+        <div id="aiResult" class="result-section hidden">
+            <h3>🤖 AI 分析與建議</h3>
+            <div id="aiResponse" style="margin-top: 15px; line-height: 1.5;"></div>
+        </div>
+    </div>
+    
+    <div class="container tips">
+        <h4>💡 使用提示：</h4>
+        <p>• 輸入航班號碼查詢即時狀態</p>
+        <p>• 使用 AI 助理獲得旅行建議</p>
+        <p>• 可添加到主畫面像 App 一樣使用</p>
+    </div>
+
+    <script>
+        // PWA Service Worker 註冊
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('PWA 準備就緒: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('PWA 設定失敗: ', error);
+                    });
+            });
+        }
+        
+        // 航班查詢功能
+        async function searchFlight() {
+            const flightNumber = document.getElementById('flightNumber').value.trim();
+            
+            if (!flightNumber) {
+                alert('請輸入航班號碼');
+                return;
+            }
+            
+            showLoading(true);
+            hideResults();
+            
+            // 模擬 API 呼叫
+            setTimeout(() => {
+                const flightData = {
+                    number: flightNumber,
+                    status: 'scheduled',
+                    departure: {
+                        airport: 'TPE',
+                        city: '台北',
+                        time: '14:30'
+                    },
+                    arrival: {
+                        airport: 'NRT', 
+                        city: '東京',
+                        time: '18:45'
+                    },
+                    airline: flightNumber.startsWith('CI') ? '中華航空' : 
+                             flightNumber.startsWith('BR') ? '長榮航空' : '航空公司',
+                    duration: '3小時15分鐘'
+                };
+                
+                displayFlightResult(flightData);
+                showLoading(false);
+            }, 1500);
+        }
+        
+        // AI 助理功能
+        async function askAI() {
+            const flightNumber = document.getElementById('flightNumber').value.trim();
+            
+            if (!flightNumber) {
+                alert('請先輸入航班號碼');
+                return;
+            }
+            
+            showLoading(true);
+            hideResults();
+            
+            setTimeout(() => {
+                let response = '';
+                if (flightNumber.startsWith('CI')) {
+                    response = `航班 ${flightNumber} 是中華航空的航班。建議：
+• 提前 2-3 小時到達機場
+• 確認行李限重規定
+• 關注天氣狀況可能影響起降
+• 準備好旅行證件
+
+💡 貼心提醒：可提前網路報到節省時間！`;
+                } else if (flightNumber.startsWith('BR')) {
+                    response = `航班 ${flightNumber} 是長榮航空的航班。建議：
+• 可提前線上報到節省時間
+• 注意隨身行李規定
+• 確認航班是否有餐飲服務
+• 建議下載航空公司的 App 追蹤即時動態
+
+🎒 行李提醒：經濟艙通常可託運23公斤`;
+                } else {
+                    response = `關於航班 ${flightNumber} 的旅行建議：
+• 建議提前確認航班狀態
+• 關注出發地天氣狀況
+• 準備好必要的旅行文件
+• 提前到達機場辦理手續
+
+⏰ 建議提前2小時到達機場`;
+                }
+                
+                document.getElementById('aiResponse').innerHTML = response.replace(/\n/g, '<br>');
+                document.getElementById('aiResult').classList.remove('hidden');
+                showLoading(false);
+            }, 2000);
+        }
+        
+        function displayFlightResult(data) {
+            const detailsDiv = document.getElementById('flightDetails');
+            detailsDiv.innerHTML = `
+                <div class="info-item">
+                    <strong>航班號碼：</strong> ${data.number}
+                </div>
+                <div class="info-item">
+                    <strong>航空公司：</strong> ${data.airline}
+                </div>
+                <div class="info-item">
+                    <strong>狀態：</strong> 🟢 預定起飛
+                </div>
+                <div class="info-item">
+                    <strong>出發：</strong> ${data.departure.city} (${data.departure.airport}) ${data.departure.time}
+                </div>
+                <div class="info-item">
+                    <strong>抵達：</strong> ${data.arrival.city} (${data.arrival.airport}) ${data.arrival.time}
+                </div>
+                <div class="info-item">
+                    <strong>飛行時間：</strong> ${data.duration}
+                </div>
+            `;
+            document.getElementById('flightResult').classList.remove('hidden');
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+        }
+        
+        function hideResults() {
+            document.getElementById('flightResult').classList.add('hidden');
+            document.getElementById('aiResult').classList.add('hidden');
+        }
+        
+        // 按 Enter 鍵查詢
+        document.getElementById('flightNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchFlight();
+            }
+        });
+    </script>
+</body>
+</html>
